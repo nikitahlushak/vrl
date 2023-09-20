@@ -1,20 +1,21 @@
 use std::borrow::Cow;
 use std::fmt::{self, Display, Formatter};
 
+use compact_str::CompactString;
 use serde::{Deserialize, Serialize};
 
 /// The key type value. This is a simple zero-overhead wrapper set up to make it explicit that
 /// object keys are read-only and their underlying type is opaque and may change for efficiency.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(transparent)]
-pub struct KeyString(String);
+pub struct KeyString(CompactString);
 
 impl KeyString {
     /// Convert the key into a boxed slice of bytes (`u8`).
     #[inline]
     #[must_use]
     pub fn into_bytes(self) -> Box<[u8]> {
-        self.0.into_bytes().into()
+        self.0.into_string().into_bytes().into()
     }
 
     /// Is this string empty?
@@ -78,7 +79,7 @@ impl From<&str> for KeyString {
 
 impl From<String> for KeyString {
     fn from(s: String) -> Self {
-        Self(s)
+        Self(CompactString::from(s))
     }
 }
 
@@ -90,7 +91,7 @@ impl From<Cow<'_, str>> for KeyString {
 
 impl From<KeyString> for String {
     fn from(s: KeyString) -> Self {
-        s.0
+        s.0.into()
     }
 }
 
